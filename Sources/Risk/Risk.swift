@@ -48,7 +48,6 @@ public final class Risk {
     public func publishData(cardToken: String? = nil, completion: @escaping (Result<PublishRiskData, RiskError.Publish>) -> Void) {
         guard let fingerprintService else {
           completion(.failure(.fingerprintServiceIsNotConfigured))
-          return
         }
 
         DispatchQueue.main.async {
