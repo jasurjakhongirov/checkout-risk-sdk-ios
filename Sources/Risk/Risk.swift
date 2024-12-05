@@ -27,9 +27,10 @@ public final class Risk {
     public func configure(completion: @escaping (Result<Void, RiskError.Configuration>) -> Void) {
         deviceDataService.getConfiguration { [weak self] result in
             guard let self = self else { return }
-            
+            print("Configuring here")
             switch result {
             case .success(let configuration):
+                print("Success is here mine")
                 blockTime = configuration.blockTime
                 self.fingerprintService = FingerprintService(
                     fingerprintPublicKey: configuration.publicKey,
@@ -47,7 +48,10 @@ public final class Risk {
     
     public func publishData(cardToken: String? = nil, completion: @escaping (Result<PublishRiskData, RiskError.Publish>) -> Void) {
         guard let fingerprintService else {
+          print("Completing")
           completion(.failure(.fingerprintServiceIsNotConfigured))
+          print("Returning")
+          return;
         }
 
         DispatchQueue.main.async {
@@ -62,7 +66,7 @@ public final class Risk {
 
         fingerprintService.publishData { [weak self] fpResult in
           guard let self = self else { return }
-
+          print("On some line")
           DispatchQueue.main.async {
             guard let timer = self.timer, timer.isValid else { // 2.59 -> valid
               return
@@ -74,9 +78,11 @@ public final class Risk {
 
             switch fpResult {
             case .success(let response):
+              print("It is called successful \(response)")
               self.persistFpData(cardToken: cardToken, fingerprintRequestId: response.requestId, fpLoadTime: response.fpLoadTime, fpPublishTime: response.fpPublishTime, completion: completion)
 
             case .failure(let error):
+              print("It is called failure: \(error)")
               completion(.failure(error))
             }
           }
@@ -87,8 +93,10 @@ public final class Risk {
         self.deviceDataService.persistFpData(fingerprintRequestId: fingerprintRequestId, fpLoadTime: fpLoadTime, fpPublishTime: fpPublishTime, cardToken: cardToken) { result in
             switch result {
             case .success(let response):
+                print("Success persist: \(response)")
                 completion(.success(PublishRiskData(deviceSessionId: response.deviceSessionId)))
             case .failure(let error):
+                print("Failure persist: \(error)")
                 completion(.failure(error))
             }
         }
